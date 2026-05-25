@@ -6,7 +6,7 @@
 #ifndef TYPIO_CONTROL_BIND_H
 #define TYPIO_CONTROL_BIND_H
 
-#include "typio/config_schema.h"
+#include "typio/schema/config_schema.h"
 #include <gtk/gtk.h>
 
 typedef struct ControlBinding {

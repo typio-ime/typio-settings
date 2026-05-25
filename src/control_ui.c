@@ -1,6 +1,6 @@
 #include "control_internal.h"
 #include "control_widgets.h"
-#include "typio/config_schema.h"
+#include "typio/schema/config_schema.h"
 
 #include <gdk/gdkkeysyms.h>
 

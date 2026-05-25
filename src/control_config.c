@@ -1,9 +1,9 @@
 #include "control_internal.h"
 #include "control_widgets.h"
 
-#include "typio/dbus_protocol.h"
-#include "typio/engine_label.h"
-#include "typio/rime_schema_list.h"
+#include "typio/ipc/dbus_protocol.h"
+#include "typio/abi/engine_label.h"
+#include "typio/runtime/rime_schema_list.h"
 #include "typio/typio.h"
 
 static char *control_dup_buffer_text(TypioControl *control) {

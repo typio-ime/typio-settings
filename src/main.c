@@ -4,7 +4,7 @@
  */
 
 #include "control_internal.h"
-#include "typio/dbus_protocol.h"
+#include "typio/ipc/dbus_protocol.h"
 
 #include <getopt.h>
 #include <stdio.h>

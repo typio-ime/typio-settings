@@ -4,7 +4,7 @@
  */
 
 #include "control_bind.h"
-#include "typio/config.h"
+#include "typio/abi/config.h"
 
 #include <string.h>
 
