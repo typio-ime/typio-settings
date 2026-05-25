@@ -25,11 +25,8 @@ control_sources = files(
 
 control_exe = executable('typio-control',
     control_sources, gresource,
-    dependencies: [typio_core_dep, gtk4_dep],
-    include_directories: [
-        include_directories('.'),
-        include_directories('../core/include'),
-    ],
+    dependencies: [libtypio_dep, gtk4_dep],
+    include_directories: include_directories('.'),
     install: true,
-    install_dir: bindir,
+    install_dir: get_option('bindir'),
 )
