@@ -1,5 +1,5 @@
 project('typio-settings', 'c',
-    version: '4.2.2',
+    version: '5.0.0',
     default_options: [
         'c_std=c23',
         'warning_level=2',
