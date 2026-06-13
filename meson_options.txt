@@ -1,2 +1,2 @@
 option('build_tests', type: 'boolean', value: true,
-    description: 'Build the control-panel tests')
+    description: 'Build the settings-panel tests')

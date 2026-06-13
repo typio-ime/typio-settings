@@ -17,7 +17,7 @@ env:
 
 jobs:
   build-test:
-    name: Build & test against libtypio
+    name: Build & test against libtypio + flux-ui
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
@@ -26,7 +26,10 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends \
-            meson ninja-build pkg-config libgtk-4-dev
+            meson ninja-build pkg-config \
+            libwayland-dev wayland-protocols libxkbcommon-dev \
+            libvulkan-dev glslang-tools \
+            libfreetype6-dev libharfbuzz-dev libfontconfig1-dev
 
       - name: Checkout libtypio
         uses: actions/checkout@v4
@@ -39,6 +42,30 @@ jobs:
           meson setup _libtypio/build _libtypio \
             --prefix="$HOME/.local" -Dbuild_tests=false
           ninja -C _libtypio/build install
+
+      - name: Checkout flux
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository_owner }}/flux
+          path: _flux
+
+      - name: Build & install flux
+        run: |
+          meson setup _flux/build _flux \
+            --prefix="$HOME/.local" -Dtests=false -Dexamples=false
+          ninja -C _flux/build install
+
+      - name: Checkout flux-ui
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository_owner }}/flux-ui
+          path: _flux-ui
+
+      - name: Build & install flux-ui
+        run: |
+          meson setup _flux-ui/build _flux-ui \
+            --prefix="$HOME/.local" -Dtests=false -Dexamples=false
+          ninja -C _flux-ui/build install
 
       - name: Configure
         run: meson setup build --prefix="$HOME/.local"

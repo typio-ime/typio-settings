@@ -1,4 +1,4 @@
-project('typio-control', 'c',
+project('typio-settings', 'c',
     version: '4.2.2',
     default_options: [
         'c_std=c23',
@@ -13,8 +13,14 @@ add_project_arguments('-D_POSIX_C_SOURCE=200809L', language: 'c')
 
 # ── Dependencies ──────────────────────────────────────────────────────────
 libtypio_dep = dependency('libtypio')
-gtk4_dep = dependency('gtk4', required: true)
-glib_compile_resources = find_program('glib-compile-resources', required: true)
+flux_ui_dep  = dependency('flux-ui', required: true)
+glib_dep     = dependency('glib-2.0', required: true)
+gio_dep      = dependency('gio-2.0',  required: true)
+
+# Platform dependencies for native Wayland backend
+wl_client_dep = dependency('wayland-client', required: true)
+xkb_dep       = dependency('xkbcommon',      required: true)
+vulkan_dep    = dependency('vulkan',         required: true)
 
 datadir = get_option('datadir')
 
@@ -25,5 +31,5 @@ if get_option('build_tests')
 endif
 
 # ── Desktop entry ──────────────────────────────────────────────────────────
-install_data('data/applications/typio-control.desktop',
+install_data('data/applications/typio-settings.desktop',
     install_dir: datadir / 'applications')
