@@ -26,14 +26,18 @@
 
 #define TIP_MAX_FRAME (1U << 20) /* 1 MiB */
 
-/* TIP v1 method names (mirrors typio-wayland src/ipc/tip_protocol.h). */
+/* TIP v1 method names (mirrors typio-linux src/ipc/tip_protocol.h).
+ * Protocol v2 (ADR-0026) replaced the kind-discriminated `engine.use` /
+ * `engine.next` with modality-explicit `keyboard.*` / `voice.*` verbs. */
 #define TIP_METHOD_HELLO            "hello"
 #define TIP_METHOD_CONFIG_SET       "config.set"
 #define TIP_METHOD_CONFIG_RELOAD    "config.reload"
 #define TIP_METHOD_CONFIG_SHOW      "config.show"
 #define TIP_METHOD_ENGINE_LIST      "engine.list"
-#define TIP_METHOD_ENGINE_USE       "engine.use"
-#define TIP_METHOD_ENGINE_NEXT      "engine.next"
+#define TIP_METHOD_KEYBOARD_USE     "keyboard.use"
+#define TIP_METHOD_KEYBOARD_NEXT    "keyboard.next"
+#define TIP_METHOD_VOICE_USE        "voice.use"
+#define TIP_METHOD_VOICE_NEXT       "voice.next"
 #define TIP_METHOD_ENGINE_INVOKE    "engine.invoke"
 #define TIP_METHOD_LANGUAGE_LIST    "language.list"
 #define TIP_METHOD_LANGUAGE_USE     "language.use"
@@ -699,12 +703,39 @@ void tip_client_set_changed_callback(TipClient *c,
 /* High-level wrappers                                              */
 /* ---------------------------------------------------------------- */
 
+/* Activate NAME by dispatching to the modality-explicit verb (keyboard.use or
+ * voice.use, ADR-0026). The kind is resolved from the cached snapshot so the
+ * caller stays kind-agnostic; falls back to `keyboard` when the engine is not
+ * yet in the snapshot (e.g. activation racing with the first list refresh). */
+static const char *engine_kind_in_snapshot(TipClient *c, const char *name)
+{
+    if (!c || !name) return "keyboard";
+    const TipSnapshot *s = &c->snapshot;
+    if (!s->engines) return "keyboard";
+    for (guint i = 0; i < s->engines->len; ++i) {
+        const TipEngineEntry *e = g_ptr_array_index(s->engines, i);
+        if (e && e->name && g_strcmp0(e->name, name) == 0) {
+            return (e->kind && g_strcmp0(e->kind, "voice") == 0)
+                       ? "voice" : "keyboard";
+        }
+    }
+    return "keyboard";
+}
+
 bool tip_engine_use(TipClient *c, const char *name, GError **error)
 {
+    if (!c || !name) {
+        g_set_error(error, G_IO_ERROR, G_IO_ERROR_INVALID_ARGUMENT,
+                    "tip_engine_use: NULL client or name");
+        return false;
+    }
+    const char *kind = engine_kind_in_snapshot(c, name);
+    const char *method = (g_strcmp0(kind, "voice") == 0)
+                             ? TIP_METHOD_VOICE_USE : TIP_METHOD_KEYBOARD_USE;
     GString *p = g_string_new("{\"name\":");
-    json_append_escaped_string(p, name ? name : "");
+    json_append_escaped_string(p, name);
     g_string_append_c(p, '}');
-    char *r = tip_client_call(c, TIP_METHOD_ENGINE_USE, p->str, error);
+    char *r = tip_client_call(c, method, p->str, error);
     g_string_free(p, TRUE);
     g_free(r);
     return r != NULL;
@@ -712,14 +743,11 @@ bool tip_engine_use(TipClient *c, const char *name, GError **error)
 
 bool tip_engine_next(TipClient *c, const char *kind, GError **error)
 {
-    GString *p = g_string_new("{");
-    if (kind) {
-        g_string_append(p, "\"kind\":");
-        json_append_escaped_string(p, kind);
-    }
-    g_string_append_c(p, '}');
-    char *r = tip_client_call(c, TIP_METHOD_ENGINE_NEXT, p->str, error);
-    g_string_free(p, TRUE);
+    /* `kind` is optional; when NULL we cycle the keyboard slot to preserve the
+     * previous `engine.next` default behaviour. */
+    const char *method = (kind && g_strcmp0(kind, "voice") == 0)
+                             ? TIP_METHOD_VOICE_NEXT : TIP_METHOD_KEYBOARD_NEXT;
+    char *r = tip_client_call(c, method, "{}", error);
     g_free(r);
     return r != NULL;
 }

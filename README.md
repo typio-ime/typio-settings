@@ -20,7 +20,11 @@ ninja -C build install
 ## Note
 
 This panel currently links libtypio's config/schema/engine-label APIs and
-still references rime-specific schema helpers directly. Those will move
-behind a generic engine property/command mechanism (a planned libtypio
-change), after which the panel will render engine settings generically
-from whatever the active engine reports.
+still references rime-specific schema helpers directly. As a transitional
+measure, the Rime schema dropdown ships with a no-op list loader: it
+shows "Unselected" plus whatever schema is currently configured in TOML,
+but cannot enumerate available schemas. Browsing the full list will
+require either reintroducing a schema-list API in libtypio or moving the
+generic engine property/command mechanism planned for libtypio, after
+which the panel will render engine settings generically from whatever
+the active engine reports.

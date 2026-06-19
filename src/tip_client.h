@@ -4,7 +4,7 @@
  *
  * Two long-lived UDS connections to `$XDG_RUNTIME_DIR/typio/daemon.sock`:
  *   - control socket — blocking request/response for RPC methods
- *     (`engine.use`, `config.set`, …)
+ *     (`keyboard.use`, `voice.use`, `config.set`, …)
  *   - event socket — `events.subscribe` stream; reads dispatch on the
  *     GLib main loop via a GSocket source
  *
@@ -75,7 +75,7 @@ void tip_client_set_changed_callback(TipClient *client,
 /**
  * @brief Synchronous RPC. Caller frees the returned JSON string.
  *
- * @param method     dotted TIP method name, e.g. `"engine.use"`.
+ * @param method     dotted TIP method name, e.g. `"keyboard.use"`.
  * @param params_json raw JSON for params (e.g. `"{\"name\":\"rime\"}"`).
  *                   Pass `"{}"` for no params.
  * @param error      GError on transport/protocol error.
@@ -84,7 +84,11 @@ void tip_client_set_changed_callback(TipClient *client,
 char *tip_client_call(TipClient *client, const char *method,
                        const char *params_json, GError **error);
 
-/* High-level convenience wrappers (return TRUE on success). */
+/* High-level convenience wrappers (return TRUE on success).
+ *
+ * `tip_engine_use` resolves the modality (keyboard vs. voice) from the cached
+ * snapshot and dispatches to `keyboard.use` / `voice.use` (ADR-0026).
+ * `tip_engine_next` defaults to the keyboard slot when `kind` is NULL. */
 bool tip_engine_use(TipClient *client, const char *name, GError **error);
 bool tip_engine_next(TipClient *client, const char *kind /* or NULL */,
                       GError **error);

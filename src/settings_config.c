@@ -9,8 +9,14 @@
 /* These two helpers used to come from libtypio public headers
  * (`typio/abi/engine_label.h`, `typio/runtime/rime_schema_list.h`); both
  * were removed from libtypio's public API before this port. We provide
- * minimal local stubs so the settings panel builds; a proper port should
- * either re-introduce them in libtypio or move the logic here. */
+ * minimal local stubs so the settings panel builds.
+ *
+ * `typio_rime_schema_list_load` always returns `false`, which makes
+ * `settings_refresh_rime_schema_options` populate the dropdown with only
+ * "Unselected" plus the currently configured schema (if any). Browsing the
+ * full schema list requires reintroducing a schema-list API in libtypio
+ * — see the README "Note" for the planned generic engine property/command
+ * mechanism that will replace this stub. */
 static inline const char *typio_engine_label_fallback(const char *name) {
     return name && *name ? name : "Engine";
 }
@@ -28,7 +34,7 @@ static inline bool typio_rime_schema_list_load(
         out->schema_ids = NULL;
         out->count = 0;
     }
-    return false; /* not implemented; UI falls back to empty list */
+    return false; /* not implemented — UI degrades to "Unselected" + configured value */
 }
 
 static inline void typio_rime_schema_list_clear(TypioRimeSchemaList *list) {
